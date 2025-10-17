@@ -4,8 +4,8 @@
 For further reference, please consider the following sections:
 
 * [Official Apache Maven documentation](https://maven.apache.org/guides/index.html)
-* [Spring Boot Maven Plugin Reference Guide](https://docs.spring.io/spring-boot/4.0.0-M3/maven-plugin)
-* [Create an OCI image](https://docs.spring.io/spring-boot/4.0.0-M3/maven-plugin/build-image.html)
+* [Spring Boot Maven Plugin Reference Guide](https://docs.spring.io/spring-boot/3.5.6/maven-plugin)
+* [Create an OCI image](https://docs.spring.io/spring-boot/3.5.6/maven-plugin/build-image.html)
 
 ### Maven Parent overrides
 

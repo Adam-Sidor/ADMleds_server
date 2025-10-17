@@ -1,10 +1,10 @@
-package com.lightserver.backend;
+package com.lightserver.backed;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class BackendApplicationTests {
+class BackedApplicationTests {
 
 	@Test
 	void contextLoads() {
