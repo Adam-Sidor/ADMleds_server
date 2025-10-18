@@ -1,4 +1,4 @@
-package com.lightserver.backed.controller;
+package com.lightserver.backend.controller;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
