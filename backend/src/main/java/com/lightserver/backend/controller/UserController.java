@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/user")
 public class UserController {
 
     private final UserRepository userRepository;
@@ -19,12 +19,12 @@ public class UserController {
         this.userRepository = userRepository;
     }
 
-    @GetMapping("/getall")
+    @GetMapping("/getallusers")
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    @GetMapping("/add")
+    @GetMapping("/new")
     public String addUser(
             @RequestParam String username,
             @RequestParam String password
@@ -55,6 +55,22 @@ public class UserController {
                     return "Zmieniono hasło!";
                 }
                 return "Hasło nie może być takie samo jak obecne!";
+            }
+            return "Podane hasło jest nieprawidłowe!";
+        }
+        return "Nie znaleziono użytkownika!";
+    }
+
+    @GetMapping("/login")
+    public String login(
+            @RequestParam String username,
+            @RequestParam String password
+    ) {
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            if(bCryptPasswordEncoder.matches(password, user.getPassword())){
+               return "Zalogowano!";
             }
             return "Podane hasło jest nieprawidłowe!";
         }
