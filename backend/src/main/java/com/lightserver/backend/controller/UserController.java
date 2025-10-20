@@ -2,6 +2,7 @@ package com.lightserver.backend.controller;
 
 import com.lightserver.backend.model.User;
 import com.lightserver.backend.repository.UserRepository;
+import com.lightserver.backend.service.JwtService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,19 +62,41 @@ public class UserController {
         return "Nie znaleziono użytkownika!";
     }
 
-    @GetMapping("/login")
-    public String login(
-            @RequestParam String username,
-            @RequestParam String password
-    ) {
-        Optional<User> optionalUser = userRepository.findByUsername(username);
+    public static class LoginRequest {
+        private String username;
+        private String password;
+
+        public String getUsername() { return username; }
+        public void setUsername(String username) { this.username = username; }
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+    }
+
+    public class LoginResponse {
+        private String status;   // "Zalogowano" lub "Błędne dane"
+        private String token;    // JWT token
+
+        public LoginResponse(String status, String token) {
+            this.status = status;
+            this.token = token;
+        }
+
+        public String getStatus() { return status; }
+        public String getToken() { return token; }
+    }
+
+
+    @PostMapping("/login")
+    public LoginResponse login(@RequestBody LoginRequest loginRequest) {
+        Optional<User> optionalUser = userRepository.findByUsername(loginRequest.getUsername());
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            if(bCryptPasswordEncoder.matches(password, user.getPassword())){
-               return "Zalogowano!";
+            if(bCryptPasswordEncoder.matches(loginRequest.getPassword(), user.getPassword())){
+                JwtService jwtService = new JwtService();
+                String token = jwtService.generateToken(user.getUsername());
+                return new LoginResponse("Zalogowano",token);
             }
-            return "Podane hasło jest nieprawidłowe!";
         }
-        return "Nie znaleziono użytkownika!";
+        return new LoginResponse("Błędny login lub hasło!",null);
     }
 }
