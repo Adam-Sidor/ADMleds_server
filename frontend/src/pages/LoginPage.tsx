@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import axios from 'axios';
 
-export function LoginPage() {
+export function LoginPage({ setIsLogged }: { setIsLogged: (logged: boolean) => void }) {
   const backendIP = 'localhost';
 
   const [loginStatus, setLoginStatus] = useState("");
@@ -13,13 +13,20 @@ export function LoginPage() {
 
     const username = formData.get('username')?.toString() || '';
     const password = formData.get('password')?.toString() || '';
+    const staylogged = formData.get('staylogged')?.valueOf() || 0;
 
     try {
       const res = await axios.post('http://'+backendIP+':8080/api/user/login', { username, password });
       setLoginStatus(res.data.status);
-      console.log(res.data.status);
-      console.log(res.data.token);
-
+      if(res.data.status==="Zalogowano"){
+        if(staylogged){
+          localStorage.setItem("token",res.data.token);
+        }
+        else{
+          sessionStorage.setItem("token",res.data.token);
+        }
+        setIsLogged(true);
+      }
     }
     catch (error) {
       console.error(error);
@@ -31,8 +38,9 @@ export function LoginPage() {
     <div>
       <h1>Logowanie</h1>
       <form onSubmit={login}>
-        <input type="text" id="username" name="username" placeholder="Username"></input><br></br>
-        <input type="password" id="password" name="password" placeholder="Password"></input><br></br>
+        <input type="text" id="username" name="username" placeholder="Username"></input><br/>
+        <input type="password" id="password" name="password" placeholder="Password"></input><br/>
+        <input type="checkbox" id="staylogged" name="staylogged"></input>Pozostaw zalogowanym.<br/>
         {loginStatus&&<span>{loginStatus}<br></br></span>}
         <input type="submit"></input>
         <input type="reset"></input>
