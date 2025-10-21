@@ -4,11 +4,12 @@ import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 
 function App() {
+  const backendIP = 'localhost';
+
   const [isLogged, setIsLogged] = useState<boolean>(false);
 
   useEffect(() => {
-    let token = localStorage.getItem("token");
-    if(!token) token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token") || "";
     if (token) setIsLogged(true);
   }, []);
 
@@ -20,7 +21,7 @@ function App() {
 
   return (
     <div>
-      {isLogged ? <DashboardPage logout={handleLogout}/> : <LoginPage setIsLogged={setIsLogged}/>}
+      {isLogged ? <DashboardPage logout={handleLogout} backendIP={backendIP}/> : <LoginPage setIsLogged={setIsLogged} backendIP={backendIP}/>}
     </div>
   );
 }

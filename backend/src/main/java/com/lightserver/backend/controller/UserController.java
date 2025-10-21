@@ -7,6 +7,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -15,9 +16,11 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+    private  final JwtService jwtService;
 
-    public UserController(UserRepository userRepository) {
+    public UserController(UserRepository userRepository,JwtService jwtService) {
         this.userRepository = userRepository;
+        this.jwtService = jwtService;
     }
 
     @GetMapping("/getallusers")
@@ -92,11 +95,16 @@ public class UserController {
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             if(bCryptPasswordEncoder.matches(loginRequest.getPassword(), user.getPassword())){
-                JwtService jwtService = new JwtService();
                 String token = jwtService.generateToken(user.getUsername());
                 return new LoginResponse("Zalogowano",token);
             }
         }
         return new LoginResponse("Błędny login lub hasło!",null);
+    }
+
+    @PostMapping("/getusername")
+    public String GetUsername(@RequestBody Map<String,String> body) {
+        String token = body.get("token");
+        return jwtService.extractUsername(token);
     }
 }

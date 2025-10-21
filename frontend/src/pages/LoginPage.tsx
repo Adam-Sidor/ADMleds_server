@@ -1,8 +1,12 @@
 import React, {useState} from "react";
 import axios from 'axios';
 
-export function LoginPage({ setIsLogged }: { setIsLogged: (logged: boolean) => void }) {
-  const backendIP = 'localhost';
+interface LoginPageProps {
+  setIsLogged: (logged: boolean) => void;
+  backendIP: string;
+}
+
+export function LoginPage({setIsLogged, backendIP}: LoginPageProps) {
 
   const [loginStatus, setLoginStatus] = useState("");
 
