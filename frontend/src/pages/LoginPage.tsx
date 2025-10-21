@@ -4,12 +4,13 @@ import axios from 'axios';
 interface LoginPageProps {
   setIsLogged: (logged: boolean) => void;
   backendIP: string;
+  setPage?: (page: 'login' | 'register') => void;
 }
 
-export function LoginPage({setIsLogged, backendIP}: LoginPageProps) {
+export function LoginPage({setIsLogged, backendIP,setPage}: LoginPageProps) {
 
   const [loginStatus, setLoginStatus] = useState("");
-
+  
   const login = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -49,6 +50,8 @@ export function LoginPage({setIsLogged, backendIP}: LoginPageProps) {
         <input type="submit"></input>
         <input type="reset"></input>
       </form>
+      Nie posiadasz konta?
+      <button onClick={()=>setPage && setPage('register')}>Rejestracja</button>
     </div>
   );
 }

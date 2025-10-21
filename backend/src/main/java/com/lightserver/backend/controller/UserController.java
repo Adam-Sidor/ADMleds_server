@@ -28,17 +28,14 @@ public class UserController {
         return userRepository.findAll();
     }
 
-    @GetMapping("/new")
-    public String addUser(
-            @RequestParam String username,
-            @RequestParam String password
-    ) {
-        if (userRepository.findByUsername(username).isPresent()) {
+    @PostMapping("/new")
+    public String addUser(@RequestBody LoginRequest loginRequest) {
+        if (userRepository.findByUsername(loginRequest.getUsername()).isPresent()) {
             return "Użytkownik o tej nazwie już istnieje!";
         }
         User user = new User();
-        user.setUsername(username);
-        user.setPassword(bCryptPasswordEncoder.encode(password));
+        user.setUsername(loginRequest.getUsername());
+        user.setPassword(bCryptPasswordEncoder.encode(loginRequest.getPassword()));
         userRepository.save(user);
         return "Zapisano!";
     }
