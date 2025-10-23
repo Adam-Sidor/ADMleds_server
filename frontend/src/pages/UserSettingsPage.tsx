@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from 'axios';
-import { NewDeviceForm, type DeviceType} from "../forms/newDeviceForm";
+import { NewDeviceForm, type DeviceType } from "../forms/newDeviceForm";
 
 interface UserSettingsPageProps {
   backendIP: string;
@@ -65,7 +65,6 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
     try {
       const res = await axios.post('http://' + backendIP + ':8080/api/device/getalldevices', {});
       setDevices(res.data);
-      console.log(devices);
     } catch (error) {
       console.log(error);
     }
@@ -75,7 +74,15 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
     try {
       const res = await axios.post('http://' + backendIP + ':8080/api/device/getalltypes', {});
       setDeviceTypes(res.data);
-      console.log(deviceTypes);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const getUserSettings = async () => {
+    try {
+      const res = await axios.post('http://' + backendIP + ':8080/api/usersettings/getalldevices', {});
+      console.log(res.data);
     } catch (error) {
       console.log(error);
     }
@@ -108,17 +115,20 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
             <th>Adres IP</th>
             <th>Typ</th>
           </tr>
+        </thead>
+        <tbody>
           {devices.map((device) => (
             <tr>
               <td>{device.deviceId}</td>
               <td>{device.ipAddress}</td>
-              <td>{deviceTypes.map((dType)=>(
+              <td>{deviceTypes.map((dType) => (
                 dType.deviceTypesId === device.deviceTypeId ? dType.type : ""
               ))}</td>
             </tr>
           ))}
-        </thead>
+        </tbody>
       </table>
+      <button onClick={getUserSettings}>Poka moje urządzenia</button>
     </div>
   );
 }

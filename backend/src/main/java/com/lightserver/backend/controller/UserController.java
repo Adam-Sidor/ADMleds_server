@@ -1,5 +1,8 @@
 package com.lightserver.backend.controller;
 
+import com.lightserver.backend.DTO.LoginRequest;
+import com.lightserver.backend.DTO.LoginResponse;
+import com.lightserver.backend.DTO.ChangePasswordRequest;
 import com.lightserver.backend.model.User;
 import com.lightserver.backend.repository.UserRepository;
 import com.lightserver.backend.service.JwtService;
@@ -40,15 +43,6 @@ public class UserController {
         return "Zapisano!";
     }
 
-    public static class ChangePasswordRequest {
-        private String password;
-        private String newPassword;
-        private String token;
-        public String getPassword() {return password;}
-        public String getNewPassword() {return newPassword;}
-        public String getToken() {return token;}
-    }
-
     @PostMapping("/changepassword")
     public String changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
         String username = jwtService.extractUsername(changePasswordRequest.getToken());
@@ -72,31 +66,6 @@ public class UserController {
         userRepository.save(user);
         return "Zmieniono hasło!";
     }
-
-
-    public static class LoginRequest {
-        private String username;
-        private String password;
-
-        public String getUsername() { return username; }
-        public void setUsername(String username) { this.username = username; }
-        public String getPassword() { return password; }
-        public void setPassword(String password) { this.password = password; }
-    }
-
-    public class LoginResponse {
-        private String status;   // "Zalogowano" lub "Błędne dane"
-        private String token;    // JWT token
-
-        public LoginResponse(String status, String token) {
-            this.status = status;
-            this.token = token;
-        }
-
-        public String getStatus() { return status; }
-        public String getToken() { return token; }
-    }
-
 
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest loginRequest) {

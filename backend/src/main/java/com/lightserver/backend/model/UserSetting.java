@@ -9,17 +9,17 @@ public class UserSetting {
     @EmbeddedId
     private UserSettingId id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("username")
     @JoinColumn(name = "users_username", referencedColumnName = "username")
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("deviceId")
     @JoinColumn(name = "iot_devices_device_id", referencedColumnName = "device_id")
     private IoTDevice device;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "device_states_state_id")
     private DeviceState deviceState;
 

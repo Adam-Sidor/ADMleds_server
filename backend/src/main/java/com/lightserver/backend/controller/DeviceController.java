@@ -1,5 +1,6 @@
 package com.lightserver.backend.controller;
 
+import com.lightserver.backend.DTO.CreateDeviceRequest;
 import com.lightserver.backend.model.DeviceType;
 import com.lightserver.backend.model.IoTDevice;
 import com.lightserver.backend.repository.DeviceTypeRepository;
@@ -25,14 +26,6 @@ public class DeviceController {
     @PostMapping("/getalltypes")
     public List<DeviceType> getAllTypes() {
         return deviceTypeRepository.findAll();
-    }
-
-    public static class CreateDeviceRequest {
-        private String ip;
-        private int type;
-
-        public String getIp() {return ip;}
-        public int getType() {return type;}
     }
 
     @PostMapping("/new")
