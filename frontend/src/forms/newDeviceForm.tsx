@@ -1,13 +1,33 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import axios from 'axios';
 
 interface NewDeviceFormProps {
     backendIP: string;
 }
 
+interface DeviceType {
+    deviceTypesId: number;
+    type: string;
+    description: string;
+}
+
 export function NewDeviceForm({ backendIP }: NewDeviceFormProps) {
+    const [newDeviceStatus, setNewDeviceStatus] = useState("");
+    const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
+
+    const getDeviceTypes = async () => {
+        try {
+            const res = await axios.post('http://' + backendIP + ':8080/api/device/getalltypes', {});
+            console.log(res.data);
+            setDeviceTypes(res.data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     const createNewDevice = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
         const form = event.currentTarget;
         const formData = new FormData(form);
 
@@ -17,22 +37,33 @@ export function NewDeviceForm({ backendIP }: NewDeviceFormProps) {
         try {
             const res = await axios.post('http://' + backendIP + ':8080/api/device/new', { ip, type });
             console.log(res.data);
-            if (res.data === "Zmieniono hasło!") {
-                form.reset();
-            }
+            setNewDeviceStatus(res.data);
         } catch (error) {
             console.log(error);
         }
     }
+
+    useEffect(() => {
+        getDeviceTypes();
+    },[]);
 
     return (
         <div>
             <h3>Dodaj nowe urządzenie:</h3>
             <form onSubmit={createNewDevice}>
                 <input name="IP" placeholder="IP" /><br />
-                <input type="number" name="type" placeholder="Type" /><br />
+                <select name="type" defaultValue="">
+                    <option value="" disabled>Wybierz typ urządzenia</option>
+                    {deviceTypes.map((device) => (
+                        <option key={device.deviceTypesId} value={device.deviceTypesId}>
+                            {device.type}
+                        </option>
+                    ))}
+                </select><br/>
+                {newDeviceStatus}
                 <input type="submit" value="Stwórz" />
             </form>
+            <button onClick={getDeviceTypes}>Szukaj</button>
         </div>
     );
 }
