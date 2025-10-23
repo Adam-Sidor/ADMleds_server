@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from 'axios';
-import { NewDeviceForm } from "../forms/newDeviceForm";
+import { NewDeviceForm, type DeviceType} from "../forms/newDeviceForm";
 
 interface UserSettingsPageProps {
   backendIP: string;
@@ -8,11 +8,19 @@ interface UserSettingsPageProps {
   goBack: () => void;
 }
 
+interface Device {
+  deviceId: number;
+  ipAddress: string;
+  deviceTypeId: number;
+}
+
 export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageProps) {
   const [samePassAlert, setSamePassAlert] = useState<boolean>(false);
   const [diffPassAlert, setDiffPassAlert] = useState<boolean>(false);
-  const [changePasswordStatus,setChangePasswordStatus] = useState("");
+  const [changePasswordStatus, setChangePasswordStatus] = useState("");
   const [showNewDeviceForm, setShowNewDeviceForm] = useState<boolean>(false);
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
 
   const changePassword = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -33,9 +41,9 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
       setDiffPassAlert(false);
       if (newPassword !== password) {
         try {
-          const res = await axios.post('http://' + backendIP + ':8080/api/user/changepassword', { password,newPassword,token });
+          const res = await axios.post('http://' + backendIP + ':8080/api/user/changepassword', { password, newPassword, token });
           setChangePasswordStatus(res.data);
-          if(res.data === "Zmieniono hasło!"){
+          if (res.data === "Zmieniono hasło!") {
             form.reset();
           }
         } catch (error) {
@@ -46,6 +54,31 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
       setDiffPassAlert(true);
     }
 
+  };
+
+  useEffect(() => {
+    getAllDevices();
+    getDeviceTypes();
+  }, [showNewDeviceForm]);
+
+  const getAllDevices = async () => {
+    try {
+      const res = await axios.post('http://' + backendIP + ':8080/api/device/getalldevices', {});
+      setDevices(res.data);
+      console.log(devices);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getDeviceTypes = async () => {
+    try {
+      const res = await axios.post('http://' + backendIP + ':8080/api/device/getalltypes', {});
+      setDeviceTypes(res.data);
+      console.log(deviceTypes);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   return (
@@ -54,10 +87,10 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
       <button onClick={goBack}>Wróć</button>
       <h2>Konto:</h2>
       <h3>Zmiana hasła:</h3>
-      {changePasswordStatus==="Zmieniono hasło!" ? <span>Zmieniono hasło!<br/></span> : ""}
+      {changePasswordStatus === "Zmieniono hasło!" ? <span>Zmieniono hasło!<br /></span> : ""}
       <form onSubmit={changePassword}>
         <input type="password" name="password" placeholder="Password" /><br />
-        {changePasswordStatus==="Podane hasło jest nieprawidłowe!" ? <span>Podane hasło jest nieprawidłowe!<br/></span> : ""}
+        {changePasswordStatus === "Podane hasło jest nieprawidłowe!" ? <span>Podane hasło jest nieprawidłowe!<br /></span> : ""}
         <input type="password" name="new_password" placeholder="New Password" /><br />
         {samePassAlert && <span>Nowe hasło nie może być takie same jak obecne!<br /></span>}
         <input type="password" name="confirm_new_password" placeholder="Confirm New Password" /><br />
@@ -66,8 +99,26 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
         <input type="reset"></input>
       </form>
       <h2>Urządzenia:</h2>
-      <button onClick={()=>setShowNewDeviceForm(!showNewDeviceForm)}>+</button>
-      {showNewDeviceForm && <NewDeviceForm backendIP={backendIP}/>}
+      <button onClick={() => setShowNewDeviceForm(!showNewDeviceForm)}>+</button>
+      {showNewDeviceForm && <NewDeviceForm backendIP={backendIP} />}
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Adres IP</th>
+            <th>Typ</th>
+          </tr>
+          {devices.map((device) => (
+            <tr>
+              <td>{device.deviceId}</td>
+              <td>{device.ipAddress}</td>
+              <td>{deviceTypes.map((dType)=>(
+                dType.deviceTypesId === device.deviceTypeId ? dType.type : ""
+              ))}</td>
+            </tr>
+          ))}
+        </thead>
+      </table>
     </div>
   );
 }

@@ -5,7 +5,7 @@ interface NewDeviceFormProps {
     backendIP: string;
 }
 
-interface DeviceType {
+export interface DeviceType {
     deviceTypesId: number;
     type: string;
     description: string;
@@ -18,7 +18,6 @@ export function NewDeviceForm({ backendIP }: NewDeviceFormProps) {
     const getDeviceTypes = async () => {
         try {
             const res = await axios.post('http://' + backendIP + ':8080/api/device/getalltypes', {});
-            console.log(res.data);
             setDeviceTypes(res.data);
         } catch (error) {
             console.log(error);
@@ -63,7 +62,6 @@ export function NewDeviceForm({ backendIP }: NewDeviceFormProps) {
                 {newDeviceStatus}
                 <input type="submit" value="Stwórz" />
             </form>
-            <button onClick={getDeviceTypes}>Szukaj</button>
         </div>
     );
 }

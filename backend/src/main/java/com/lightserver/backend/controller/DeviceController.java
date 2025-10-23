@@ -17,7 +17,7 @@ public class DeviceController {
         this.iotDeviceRepository = iotDeviceRepository;
         this.deviceTypeRepository = deviceTypeRepository;
     }
-    @GetMapping("/getalldevices")
+    @PostMapping("/getalldevices")
     public List<IoTDevice> getAllDevices() {
         return iotDeviceRepository.findAll();
     }
@@ -44,7 +44,6 @@ public class DeviceController {
         device.setIpAddress(createDeviceRequest.getIp());
         device.setDeviceTypeId(createDeviceRequest.getType());
         iotDeviceRepository.save(device);
-        System.out.println("Create Device");
         return "Zapisano!";
     }
 }
