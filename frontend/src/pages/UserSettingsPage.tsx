@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from 'axios';
 import { NewDeviceForm, type DeviceType } from "../forms/newDeviceForm";
+import { NewUserDeviceForm } from "../forms/newUserDeviceForm";
 
 interface UserSettingsPageProps {
   backendIP: string;
@@ -18,7 +19,11 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
   const [samePassAlert, setSamePassAlert] = useState<boolean>(false);
   const [diffPassAlert, setDiffPassAlert] = useState<boolean>(false);
   const [changePasswordStatus, setChangePasswordStatus] = useState("");
+
   const [showNewDeviceForm, setShowNewDeviceForm] = useState<boolean>(false);
+  const [showNewUserDeviceForm,setShowNewUserDeviceForm] = useState<boolean>(false);
+  const [newUserDeviceId,setNewUserDeviceId] = useState(0);
+
   const [devices, setDevices] = useState<Device[]>([]);
   const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
 
@@ -114,6 +119,7 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
             <th>ID</th>
             <th>Adres IP</th>
             <th>Typ</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -123,11 +129,14 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
               <td>{device.ipAddress}</td>
               <td>{deviceTypes.map((dType) => (
                 dType.deviceTypesId === device.deviceTypeId ? dType.type : ""
-              ))}</td>
+              ))}
+              </td>
+              <td><button onClick={()=>{setShowNewUserDeviceForm(true);setNewUserDeviceId(device.deviceId)}}>+</button></td>
             </tr>
           ))}
         </tbody>
       </table>
+      {showNewUserDeviceForm && <NewUserDeviceForm token={token} backendIP={backendIP} deviceId={newUserDeviceId}/>}
       <button onClick={getUserSettings}>Poka moje urządzenia</button>
     </div>
   );
