@@ -40,27 +40,39 @@ public class UserController {
         return "Zapisano!";
     }
 
-    @GetMapping("/changepassword")
-    public String changePassword(
-            @RequestParam String username,
-            @RequestParam String password,
-            @RequestParam String newpassword
-    ) {
+    public static class ChangePasswordRequest {
+        private String password;
+        private String newPassword;
+        private String token;
+        public String getPassword() {return password;}
+        public String getNewPassword() {return newPassword;}
+        public String getToken() {return token;}
+    }
+
+    @PostMapping("/changepassword")
+    public String changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+        String username = jwtService.extractUsername(changePasswordRequest.getToken());
         Optional<User> optionalUser = userRepository.findByUsername(username);
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            if(bCryptPasswordEncoder.matches(password, user.getPassword())){
-                if(!bCryptPasswordEncoder.matches(newpassword, user.getPassword())){
-                    user.setPassword(bCryptPasswordEncoder.encode(newpassword));
-                    userRepository.save(user);
-                    return "Zmieniono hasło!";
-                }
-                return "Hasło nie może być takie samo jak obecne!";
-            }
+
+        if (optionalUser.isEmpty()) {
+            return "Nie znaleziono użytkownika!";
+        }
+
+        User user = optionalUser.get();
+
+        if (!bCryptPasswordEncoder.matches(changePasswordRequest.getPassword(), user.getPassword())) {
             return "Podane hasło jest nieprawidłowe!";
         }
-        return "Nie znaleziono użytkownika!";
+
+        if (bCryptPasswordEncoder.matches(changePasswordRequest.getNewPassword(), user.getPassword())) {
+            return "Hasło nie może być takie samo jak obecne!";
+        }
+
+        user.setPassword(bCryptPasswordEncoder.encode(changePasswordRequest.getNewPassword()));
+        userRepository.save(user);
+        return "Zmieniono hasło!";
     }
+
 
     public static class LoginRequest {
         private String username;
@@ -100,7 +112,7 @@ public class UserController {
     }
 
     @PostMapping("/getusername")
-    public String GetUsername(@RequestBody Map<String,String> body) {
+    public String getUsername(@RequestBody Map<String,String> body) {
         String token = body.get("token");
         return jwtService.extractUsername(token);
     }
