@@ -2,10 +2,7 @@ package com.lightserver.backend.controller;
 
 import com.lightserver.backend.model.IoTDevice;
 import com.lightserver.backend.repository.IoTDeviceRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,18 +17,25 @@ public class DeviceController {
     public List<IoTDevice> getAllDevices() {
         return iotDeviceRepository.findAll();
     }
-    @GetMapping("/new")
-    public String addUser(
-            @RequestParam String ip,
-            @RequestParam int type
-    ) {
-        if (iotDeviceRepository.findByIpAddress(ip).isPresent()) {
-            return "Urządzenie o adresie "+ip+" już istnieje!";
+
+    public static class CreateDeviceRequest {
+        private String ip;
+        private int type;
+
+        public String getIp() {return ip;}
+        public int getType() {return type;}
+    }
+
+    @PostMapping("/new")
+    public String addUser(@RequestBody CreateDeviceRequest createDeviceRequest) {
+        if (iotDeviceRepository.findByIpAddress(createDeviceRequest.getIp()).isPresent()) {
+            return "IP error";
         }
         IoTDevice device = new IoTDevice();
-        device.setIpAddress(ip);
-        device.setDeviceTypeId(type);
+        device.setIpAddress(createDeviceRequest.getIp());
+        device.setDeviceTypeId(createDeviceRequest.getType());
         iotDeviceRepository.save(device);
+        System.out.println("Create Device");
         return "Zapisano!";
     }
 }

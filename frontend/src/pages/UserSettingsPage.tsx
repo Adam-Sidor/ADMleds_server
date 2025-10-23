@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from 'axios';
+import { NewDeviceForm } from "../forms/newDeviceForm";
 
 interface UserSettingsPageProps {
   backendIP: string;
@@ -11,6 +12,7 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
   const [samePassAlert, setSamePassAlert] = useState<boolean>(false);
   const [diffPassAlert, setDiffPassAlert] = useState<boolean>(false);
   const [changePasswordStatus,setChangePasswordStatus] = useState("");
+  const [showNewDeviceForm, setShowNewDeviceForm] = useState<boolean>(false);
 
   const changePassword = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -49,6 +51,8 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
   return (
     <div>
       <h1>Ustawienia</h1>
+      <button onClick={goBack}>Wróć</button>
+      <h2>Konto:</h2>
       <h3>Zmiana hasła:</h3>
       {changePasswordStatus==="Zmieniono hasło!" ? <span>Zmieniono hasło!<br/></span> : ""}
       <form onSubmit={changePassword}>
@@ -61,7 +65,9 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
         <input type="submit" value="Zmień"></input>
         <input type="reset"></input>
       </form>
-      <button onClick={goBack}>Wróć</button>
+      <h2>Urządzenia:</h2>
+      <button onClick={()=>setShowNewDeviceForm(!showNewDeviceForm)}>+</button>
+      {showNewDeviceForm && <NewDeviceForm backendIP={backendIP}/>}
     </div>
   );
 }
