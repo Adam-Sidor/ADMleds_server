@@ -5,9 +5,10 @@ interface NewUserDeviceFormProps {
     backendIP: string;
     deviceId: number;
     token: string;
+    closeForm: () => void;
 }
 
-export function NewUserDeviceForm({ backendIP, deviceId, token}: NewUserDeviceFormProps) {
+export function NewUserDeviceForm({ backendIP, deviceId, token, closeForm}: NewUserDeviceFormProps) {
 
     const getDeviceTypes = async () => {
         try {
@@ -32,6 +33,10 @@ export function NewUserDeviceForm({ backendIP, deviceId, token}: NewUserDeviceFo
         try {
             const res = await axios.post('http://' + backendIP + ':8080/api/usersettings/new', { token, deviceId,deviceStateId,name,icon});
             console.log(res.data);
+            if(res.data === 'Zapisano!'){
+                form.reset();
+                closeForm();
+            }
         } catch (error) {
             console.log(error);
         }

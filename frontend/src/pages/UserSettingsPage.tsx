@@ -15,17 +15,27 @@ interface Device {
   deviceTypeId: number;
 }
 
+interface UserDevice {
+  deviceIp: string;
+  deviceState: string;
+  deviceType: string;
+  icon: string;
+  name: string;
+  username: string;
+}
+
 export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageProps) {
   const [samePassAlert, setSamePassAlert] = useState<boolean>(false);
   const [diffPassAlert, setDiffPassAlert] = useState<boolean>(false);
   const [changePasswordStatus, setChangePasswordStatus] = useState("");
 
   const [showNewDeviceForm, setShowNewDeviceForm] = useState<boolean>(false);
-  const [showNewUserDeviceForm,setShowNewUserDeviceForm] = useState<boolean>(false);
-  const [newUserDeviceId,setNewUserDeviceId] = useState(0);
+  const [showNewUserDeviceForm, setShowNewUserDeviceForm] = useState<boolean>(false);
+  const [newUserDeviceId, setNewUserDeviceId] = useState(0);
 
   const [devices, setDevices] = useState<Device[]>([]);
   const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
+  const [userDevices, setUserDevices] = useState<UserDevice[]>([]);
 
   const changePassword = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -64,12 +74,14 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
   useEffect(() => {
     getAllDevices();
     getDeviceTypes();
-  }, [showNewDeviceForm]);
+    getUserSettings();
+  }, [showNewDeviceForm,showNewUserDeviceForm]);
 
   const getAllDevices = async () => {
     try {
       const res = await axios.post('http://' + backendIP + ':8080/api/device/getalldevices', {});
       setDevices(res.data);
+      console.log(res.data);
     } catch (error) {
       console.log(error);
     }
@@ -86,7 +98,8 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
 
   const getUserSettings = async () => {
     try {
-      const res = await axios.post('http://' + backendIP + ':8080/api/usersettings/getalldevices', {});
+      const res = await axios.post('http://' + backendIP + ':8080/api/usersettings/getuserdevices', {token});
+      setUserDevices(res.data);
       console.log(res.data);
     } catch (error) {
       console.log(error);
@@ -113,6 +126,28 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
       <h2>Urządzenia:</h2>
       <button onClick={() => setShowNewDeviceForm(!showNewDeviceForm)}>+</button>
       {showNewDeviceForm && <NewDeviceForm backendIP={backendIP} />}
+      <h3>Moje urządzenia</h3>
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Nazwa</th>
+            <th>Adres IP</th>
+            <th>Typ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {userDevices.map((device) => (
+            <tr>
+              <td>{device.icon}</td>
+              <td>{device.name}</td>
+              <td>{device.deviceIp}</td>
+              <td>{device.deviceType}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <h3>Nieznane urządzenia</h3>
       <table>
         <thead>
           <tr>
@@ -123,21 +158,26 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
           </tr>
         </thead>
         <tbody>
-          {devices.map((device) => (
-            <tr>
-              <td>{device.deviceId}</td>
-              <td>{device.ipAddress}</td>
-              <td>{deviceTypes.map((dType) => (
-                dType.deviceTypesId === device.deviceTypeId ? dType.type : ""
-              ))}
-              </td>
-              <td><button onClick={()=>{setShowNewUserDeviceForm(true);setNewUserDeviceId(device.deviceId)}}>+</button></td>
-            </tr>
-          ))}
+          {devices
+            .filter((device) => !userDevices.some(u => u.deviceIp === device.ipAddress))
+            .map((device) => (
+              <tr key={device.deviceId}>
+                <td>{device.deviceId}</td>
+                <td>{device.ipAddress}</td>
+                <td>
+                  {deviceTypes.find((dType) => dType.deviceTypesId === device.deviceTypeId)?.type || ""}
+                </td>
+                <td>
+                  <button onClick={() => {
+                    setShowNewUserDeviceForm(true);
+                    setNewUserDeviceId(device.deviceId);
+                  }}>+</button>
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
-      {showNewUserDeviceForm && <NewUserDeviceForm token={token} backendIP={backendIP} deviceId={newUserDeviceId}/>}
-      <button onClick={getUserSettings}>Poka moje urządzenia</button>
+      {showNewUserDeviceForm && <NewUserDeviceForm token={token} backendIP={backendIP} deviceId={newUserDeviceId} closeForm={()=>setShowNewUserDeviceForm(false)}/>}
     </div>
   );
 }

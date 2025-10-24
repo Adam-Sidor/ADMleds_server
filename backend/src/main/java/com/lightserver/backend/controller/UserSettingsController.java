@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,17 @@ public class UserSettingsController {
         return userSettingsRepository.findAll().stream()
                 .map(UserSettingDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    @PostMapping("/getuserdevices")
+    public List<UserSettingDTO> getUserDevices(@RequestBody Map<String,String> body) {
+        String token = body.get("token");
+        String username = jwtService.extractUsername(token);
+        System.out.println(username);
+        return userSettingsRepository.findByUser_Username(username).stream()
+                .map(UserSettingDTO::new)
+                .collect(Collectors.toList());
+
     }
 
     @PostMapping("/new")
