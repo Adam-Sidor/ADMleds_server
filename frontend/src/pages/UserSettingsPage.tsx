@@ -15,7 +15,7 @@ interface Device {
   deviceTypeId: number;
 }
 
-interface UserDevice {
+export interface UserDevice {
   deviceIp: string;
   deviceState: string;
   deviceType: string;
@@ -75,13 +75,12 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
     getAllDevices();
     getDeviceTypes();
     getUserSettings();
-  }, [showNewDeviceForm,showNewUserDeviceForm]);
+  }, [showNewDeviceForm, showNewUserDeviceForm]);
 
   const getAllDevices = async () => {
     try {
       const res = await axios.post('http://' + backendIP + ':8080/api/device/getalldevices', {});
       setDevices(res.data);
-      console.log(res.data);
     } catch (error) {
       console.log(error);
     }
@@ -98,13 +97,44 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
 
   const getUserSettings = async () => {
     try {
-      const res = await axios.post('http://' + backendIP + ':8080/api/usersettings/getuserdevices', {token});
+      const res = await axios.post('http://' + backendIP + ':8080/api/usersettings/getuserdevices', { token });
       setUserDevices(res.data);
-      console.log(res.data);
     } catch (error) {
       console.log(error);
     }
   }
+
+  const handleDeviceStateChange = async (deviceIp: string, checked: boolean) => {
+    const newState = checked ? "active" : "added";
+
+    try {
+      await axios.post(`http://${backendIP}:8080/api/usersettings/updatestate`, {
+        token,
+        deviceIp,
+        newState,
+      });
+
+      setUserDevices(prev =>
+        prev.map(d => d.deviceIp === deviceIp ? { ...d, deviceState: newState } : d)
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const deleteDevice = async (deviceIp: string) => {
+    try {
+      await axios.post(`http://${backendIP}:8080/api/usersettings/updatestate`, {
+        token,
+        deviceIp,
+        newState: "not_added"
+      });
+      setUserDevices(prev => prev.filter(d => d.deviceIp !== deviceIp));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
 
   return (
     <div>
@@ -125,7 +155,7 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
       </form>
       <h2>Urządzenia:</h2>
       <button onClick={() => setShowNewDeviceForm(!showNewDeviceForm)}>+</button>
-      {showNewDeviceForm && <NewDeviceForm backendIP={backendIP} />}
+      {showNewDeviceForm && <NewDeviceForm backendIP={backendIP} userDevices={userDevices} token={token} />}
       <h3>Moje urządzenia</h3>
       <table>
         <thead>
@@ -134,16 +164,30 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
             <th>Nazwa</th>
             <th>Adres IP</th>
             <th>Typ</th>
+            <th>Aktywny</th>
+            <th>Usuń</th>
           </tr>
         </thead>
         <tbody>
           {userDevices.map((device) => (
-            <tr>
-              <td>{device.icon}</td>
-              <td>{device.name}</td>
-              <td>{device.deviceIp}</td>
-              <td>{device.deviceType}</td>
-            </tr>
+            device.deviceState === "added" || device.deviceState === "active" ?
+              <tr>
+                <td>{device.icon}</td>
+                <td>{device.name}</td>
+                <td>{device.deviceIp}</td>
+                <td>{device.deviceType}</td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={device.deviceState === "active"}
+                    onChange={(e) => handleDeviceStateChange(device.deviceIp, e.target.checked)}
+                  /></td>
+                <td>
+                  <button onClick={() => deleteDevice(device.deviceIp)}>-</button>
+                </td>
+              </tr>
+              :
+              ""
           ))}
         </tbody>
       </table>
@@ -159,7 +203,7 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
         </thead>
         <tbody>
           {devices
-            .filter((device) => !userDevices.some(u => u.deviceIp === device.ipAddress))
+            .filter((device) => !userDevices.some(u => u.deviceIp === device.ipAddress && u.deviceState !== "not_added"))
             .map((device) => (
               <tr key={device.deviceId}>
                 <td>{device.deviceId}</td>
@@ -177,7 +221,7 @@ export function UserSettingsPage({ backendIP, token, goBack }: UserSettingsPageP
             ))}
         </tbody>
       </table>
-      {showNewUserDeviceForm && <NewUserDeviceForm token={token} backendIP={backendIP} deviceId={newUserDeviceId} closeForm={()=>setShowNewUserDeviceForm(false)}/>}
+      {showNewUserDeviceForm && <NewUserDeviceForm token={token} backendIP={backendIP} deviceId={newUserDeviceId} closeForm={() => setShowNewUserDeviceForm(false)} />}
     </div>
   );
 }

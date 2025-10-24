@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from 'axios';
+import { type UserDevice } from "../pages/UserSettingsPage";
 
 interface NewDeviceFormProps {
     backendIP: string;
+    userDevices: UserDevice[];
+    token: string;
 }
 
 export interface DeviceType {
@@ -11,10 +14,10 @@ export interface DeviceType {
     description: string;
 }
 
-export function NewDeviceForm({ backendIP }: NewDeviceFormProps) {
+export function NewDeviceForm({ backendIP, userDevices, token }: NewDeviceFormProps) {
     const [newDeviceStatus, setNewDeviceStatus] = useState("");
     const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
-
+    const [isDevice, setIsDevice] = useState(false);
     const getDeviceTypes = async () => {
         try {
             const res = await axios.post('http://' + backendIP + ':8080/api/device/getalltypes', {});
@@ -33,18 +36,38 @@ export function NewDeviceForm({ backendIP }: NewDeviceFormProps) {
         const ip = formData.get("IP");
         const type = formData.get("type");
 
-        try {
-            const res = await axios.post('http://' + backendIP + ':8080/api/device/new', { ip, type });
-            console.log(res.data);
-            setNewDeviceStatus(res.data);
-        } catch (error) {
-            console.log(error);
+
+
+        userDevices.map((uDevice) => (
+            uDevice.deviceIp === ip ? setIsDevice(true) : ""
+        ));
+        if (!isDevice) {
+            try {
+                const res = await axios.post('http://' + backendIP + ':8080/api/device/new', { ip, type });
+                console.log(res.data);
+                setNewDeviceStatus(res.data);
+            } catch (error) {
+                console.log(error);
+            }
+        } else {
+            setIsDevice(false);
+            console.log("urządzenie istnieje");
+            try {
+                await axios.post(`http://${backendIP}:8080/api/usersettings/updatestate`, {
+                    token,
+                    deviceIp: ip,
+                    newState: "added"
+                });
+            } catch (error) {
+                console.error(error);
+            }
         }
+
     }
 
     useEffect(() => {
         getDeviceTypes();
-    },[]);
+    }, []);
 
     return (
         <div>
@@ -58,7 +81,7 @@ export function NewDeviceForm({ backendIP }: NewDeviceFormProps) {
                             {device.type}
                         </option>
                     ))}
-                </select><br/>
+                </select><br />
                 {newDeviceStatus}
                 <input type="submit" value="Stwórz" />
             </form>

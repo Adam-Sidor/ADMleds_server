@@ -1,7 +1,9 @@
 package com.lightserver.backend.controller;
 
 import com.lightserver.backend.DTO.NewUserSettingRequest;
+import com.lightserver.backend.DTO.UpdateDeviceStateRequest;
 import com.lightserver.backend.DTO.UserSettingDTO;
+import com.lightserver.backend.model.DeviceState;
 import com.lightserver.backend.model.User;
 import com.lightserver.backend.model.UserSetting;
 import com.lightserver.backend.model.UserSettingId;
@@ -69,4 +71,27 @@ public class UserSettingsController {
         return "Zapisano!";
     }
 
+    @PostMapping("/updatestate")
+    public String updateDeviceState(@RequestBody UpdateDeviceStateRequest request) {
+        String username = jwtService.extractUsername(request.getToken());
+
+        Optional<UserSetting> optionalSetting = userSettingsRepository
+                .findByUser_UsernameAndDevice_IpAddress(username, request.getDeviceIp());
+
+        if (optionalSetting.isEmpty()) {
+            return "Nie znaleziono urządzenia użytkownika";
+        }
+
+        UserSetting setting = optionalSetting.get();
+        Optional<DeviceState> newDeviceState = deviceStateRepository.findByStateName(request.getNewState());
+
+        if (newDeviceState.isEmpty()) {
+            return "Nie znaleziono stanu urządzenia: " + request.getNewState();
+        }
+
+        setting.setDeviceState(newDeviceState.get());
+        userSettingsRepository.save(setting);
+
+        return "Zaktualizowano stan urządzenia na: " + request.getNewState();
+    }
 }
