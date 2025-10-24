@@ -30,6 +30,19 @@ export function DashboardPage({ logout, backendIP }: DashboardPageProps) {
     }
   }
 
+  const commands = {
+    "r":"255" 
+  }
+
+  const sendRequest = async () => {
+    try {
+      const res = await axios.post('http://' + backendIP + ':8080/api/sendrequest', { token, commands });
+      console.log(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   if (page === "settings") {
     return <UserSettingsPage backendIP={backendIP} token={token} goBack={() => setPage("dashboard")} />;
   }
@@ -40,6 +53,7 @@ export function DashboardPage({ logout, backendIP }: DashboardPageProps) {
       <h2>Witaj {username}!</h2>
       <button onClick={logout}>Wyloguj</button>
       <button onClick={() => setPage("settings")}>Ustawienia</button>
+      <button onClick={()=>sendRequest()}>Request</button>
     </div>
   );
 }

@@ -1,15 +1,20 @@
 package com.lightserver.backend.controller;
 
+import com.lightserver.backend.DTO.UserRequestMessage;
+import com.lightserver.backend.model.UserSetting;
+import com.lightserver.backend.repository.UserSettingsRepository;
+import com.lightserver.backend.service.JwtService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.util.List;
 import java.util.Map;
 
 @RequestMapping("/api")
@@ -17,38 +22,39 @@ import java.util.Map;
 public class RequestsController {
 
     private final WebClient webClient = WebClient.create();
+    private  final JwtService jwtService;
+    private final UserSettingsRepository userSettingsRepository;
 
-    @GetMapping("/sendrequest")
-    public ResponseEntity<String> sendRequest(
-            @RequestParam String ip,
-            @RequestParam(defaultValue = "8080") int port,
-            @RequestParam(defaultValue = "/api/game/start") String path
-    ){
+    public RequestsController(JwtService jwtService, UserSettingsRepository userSettingsRepository) {
+        this.jwtService = jwtService;
+        this.userSettingsRepository = userSettingsRepository;
+    }
 
-        String url = "http://" + ip + ":" + port + path;
+    @PostMapping("/sendrequest")
+    public String sendRequest(@RequestBody UserRequestMessage userRequestMessage){
 
-        Map<String, Object> body = Map.of(
-                "sessionId", 1,
-                "rows", 10,
-                "cols", 10,
-                "mines", 5
-        );
+        String username = jwtService.extractUsername(userRequestMessage.getToken());
+        List<UserSetting> userSetting = userSettingsRepository.findByUser_UsernameAndDeviceState_StateId(username,4);
+        for (UserSetting userSetting1 : userSetting) {
+            Map<String, String> commands = userRequestMessage.getCommands();
+            String ip = userSetting1.getDevice().getIpAddress();
+            for (Map.Entry<String, String> entry : commands.entrySet()) {
+                String command = entry.getKey();
+                String value = entry.getValue();
+                String url = "http://" + ip + "/" + command+"="+value;
+                try {
+                    String response = webClient.get()
+                            .uri(url)
+                            .retrieve()
+                            .bodyToMono(String.class)
+                            .block();
+                    return "Response from " + ip + ": </br>" + response;
+                } catch (Exception e) {
+                    return e.getMessage();
+                }
+            }
 
-        try {
-            String response = webClient.post()
-                    .uri(url)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(body)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
-            return ResponseEntity.ok("Response from " + ip + ": </br>" + response);
-        } catch (WebClientResponseException e) {
-            return ResponseEntity.status(e.getRawStatusCode())
-                    .body("Error response: " + e.getResponseBodyAsString());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
         }
+        return "";
     }
 }

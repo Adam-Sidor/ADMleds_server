@@ -50,7 +50,6 @@ public class UserSettingsController {
     public List<UserSettingDTO> getUserDevices(@RequestBody Map<String,String> body) {
         String token = body.get("token");
         String username = jwtService.extractUsername(token);
-        System.out.println(username);
         return userSettingsRepository.findByUser_Username(username).stream()
                 .map(UserSettingDTO::new)
                 .collect(Collectors.toList());
