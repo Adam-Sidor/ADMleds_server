@@ -1,5 +1,8 @@
 package com.lightserver.backend.controller;
 
+import com.lightserver.backend.DTO.LoginRequest;
+import com.lightserver.backend.DTO.LoginResponse;
+import com.lightserver.backend.DTO.ChangePasswordRequest;
 import com.lightserver.backend.model.User;
 import com.lightserver.backend.repository.UserRepository;
 import com.lightserver.backend.service.JwtService;
@@ -40,51 +43,29 @@ public class UserController {
         return "Zapisano!";
     }
 
-    @GetMapping("/changepassword")
-    public String changePassword(
-            @RequestParam String username,
-            @RequestParam String password,
-            @RequestParam String newpassword
-    ) {
+    @PostMapping("/changepassword")
+    public String changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+        String username = jwtService.extractUsername(changePasswordRequest.getToken());
         Optional<User> optionalUser = userRepository.findByUsername(username);
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            if(bCryptPasswordEncoder.matches(password, user.getPassword())){
-                if(!bCryptPasswordEncoder.matches(newpassword, user.getPassword())){
-                    user.setPassword(bCryptPasswordEncoder.encode(newpassword));
-                    userRepository.save(user);
-                    return "Zmieniono hasło!";
-                }
-                return "Hasło nie może być takie samo jak obecne!";
-            }
+
+        if (optionalUser.isEmpty()) {
+            return "Nie znaleziono użytkownika!";
+        }
+
+        User user = optionalUser.get();
+
+        if (!bCryptPasswordEncoder.matches(changePasswordRequest.getPassword(), user.getPassword())) {
             return "Podane hasło jest nieprawidłowe!";
         }
-        return "Nie znaleziono użytkownika!";
-    }
 
-    public static class LoginRequest {
-        private String username;
-        private String password;
-
-        public String getUsername() { return username; }
-        public void setUsername(String username) { this.username = username; }
-        public String getPassword() { return password; }
-        public void setPassword(String password) { this.password = password; }
-    }
-
-    public class LoginResponse {
-        private String status;   // "Zalogowano" lub "Błędne dane"
-        private String token;    // JWT token
-
-        public LoginResponse(String status, String token) {
-            this.status = status;
-            this.token = token;
+        if (bCryptPasswordEncoder.matches(changePasswordRequest.getNewPassword(), user.getPassword())) {
+            return "Hasło nie może być takie samo jak obecne!";
         }
 
-        public String getStatus() { return status; }
-        public String getToken() { return token; }
+        user.setPassword(bCryptPasswordEncoder.encode(changePasswordRequest.getNewPassword()));
+        userRepository.save(user);
+        return "Zmieniono hasło!";
     }
-
 
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest loginRequest) {
@@ -100,7 +81,7 @@ public class UserController {
     }
 
     @PostMapping("/getusername")
-    public String GetUsername(@RequestBody Map<String,String> body) {
+    public String getUsername(@RequestBody Map<String,String> body) {
         String token = body.get("token");
         return jwtService.extractUsername(token);
     }

@@ -1,11 +1,11 @@
 package com.lightserver.backend.controller;
 
+import com.lightserver.backend.DTO.CreateDeviceRequest;
+import com.lightserver.backend.model.DeviceType;
 import com.lightserver.backend.model.IoTDevice;
+import com.lightserver.backend.repository.DeviceTypeRepository;
 import com.lightserver.backend.repository.IoTDeviceRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -13,24 +13,29 @@ import java.util.List;
 @RequestMapping("/api/device")
 public class DeviceController {
     private final IoTDeviceRepository iotDeviceRepository;
-    public DeviceController(IoTDeviceRepository iotDeviceRepository) {
+    private final DeviceTypeRepository deviceTypeRepository;
+    public DeviceController(IoTDeviceRepository iotDeviceRepository, DeviceTypeRepository deviceTypeRepository) {
         this.iotDeviceRepository = iotDeviceRepository;
+        this.deviceTypeRepository = deviceTypeRepository;
     }
-    @GetMapping("/getalldevices")
+    @PostMapping("/getalldevices")
     public List<IoTDevice> getAllDevices() {
         return iotDeviceRepository.findAll();
     }
-    @GetMapping("/new")
-    public String addUser(
-            @RequestParam String ip,
-            @RequestParam int type
-    ) {
-        if (iotDeviceRepository.findByIpAddress(ip).isPresent()) {
-            return "Urządzenie o adresie "+ip+" już istnieje!";
+
+    @PostMapping("/getalltypes")
+    public List<DeviceType> getAllTypes() {
+        return deviceTypeRepository.findAll();
+    }
+
+    @PostMapping("/new")
+    public String addUser(@RequestBody CreateDeviceRequest createDeviceRequest) {
+        if (iotDeviceRepository.findByIpAddress(createDeviceRequest.getIp()).isPresent()) {
+            return "IP error";
         }
         IoTDevice device = new IoTDevice();
-        device.setIpAddress(ip);
-        device.setDeviceTypeId(type);
+        device.setIpAddress(createDeviceRequest.getIp());
+        device.setDeviceTypeId(createDeviceRequest.getType());
         iotDeviceRepository.save(device);
         return "Zapisano!";
     }
