@@ -12,7 +12,7 @@ export function DashboardPage({ logout, backendIP }: DashboardPageProps) {
   const [token, setToken] = useState("");
   const [page, setPage] = useState<"dashboard" | "settings">("dashboard");
   const [showColorSelection, setShowColorSelection] = useState<boolean>(false);
-  const [brightnessLvl, setBrightnessLvl] = useState(0);
+  const [brightnessLvl, setBrightnessLvl] = useState(255);
 
   useEffect(() => {
     const storageToken = localStorage.getItem("token") || sessionStorage.getItem("token") || "";
@@ -87,6 +87,14 @@ export function DashboardPage({ logout, backendIP }: DashboardPageProps) {
     setBrightnessLvl(parseInt(brightness));
   }}
 
+  function setStatus(isOn: number){
+    const commands = {
+      "status": isOn
+    }
+    sendRequest(commands);
+  }
+
+
   if (page === "settings") {
     return <UserSettingsPage backendIP={backendIP} token={token} goBack={() => setPage("dashboard")} />;
   }
@@ -97,6 +105,9 @@ export function DashboardPage({ logout, backendIP }: DashboardPageProps) {
       <h2>Witaj {username}!</h2>
       <button onClick={logout}>Wyloguj</button>
       <button onClick={() => setPage("settings")}>Ustawienia</button><br />
+      <h2>Sterowanie oświetleniem</h2>
+      <button onClick={()=>setStatus(1)}>Włącz światła</button>
+      <button onClick={()=>setStatus(0)}>Wyłącz światła</button><br/>
       <span><select name="Mode" defaultValue="" onChange={setMode}>
         <option value="" disabled>Wybierz tryb</option>
         <option value="0">ARGB</option>
@@ -109,7 +120,7 @@ export function DashboardPage({ logout, backendIP }: DashboardPageProps) {
       <button onClick={()=>setNightMode(1)}>Włącz tryb nocny</button>
       <button onClick={()=>setNightMode(0)}>Wyłącz tryb nocny</button><br/>
       Brightness: {brightnessLvl} <br/>
-      <input type="range" name="brightness" min="0" max="255" onPointerUp={setBrightness} onChange={brightnessHandler}/>
+      <input type="range" name="brightness" min="0" max="255" value={brightnessLvl} onPointerUp={setBrightness} onChange={brightnessHandler}/>
     </div>
   );
 }
