@@ -42,15 +42,16 @@ public class RequestsController {
                 String command = entry.getKey();
                 String value = entry.getValue();
                 String url = "http://" + ip + "/" + command+"="+value;
+                System.out.println(url);
                 try {
                     String response = webClient.get()
                             .uri(url)
                             .retrieve()
                             .bodyToMono(String.class)
                             .block();
-                    return "Response from " + ip + ": </br>" + response;
+                    System.out.println("Response from " + ip + ": </br>" + response);
                 } catch (Exception e) {
-                    return e.getMessage();
+                    System.out.println(e.getMessage());
                 }
             }
 
