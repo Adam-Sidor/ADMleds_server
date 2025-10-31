@@ -32,7 +32,7 @@ export function DashboardPage({ logout, backendIP }: DashboardPageProps) {
     }
   }
 
-  const sendRequest = async (commands) => {
+  const sendRequest = async (commands: Record<string, string | number>) => {
     try {
       await axios.post('http://' + backendIP + ':8080/api/sendrequest', { token, commands });
     } catch (error) {
@@ -75,17 +75,17 @@ export function DashboardPage({ logout, backendIP }: DashboardPageProps) {
   }
 
   function setBrightness(event: React.PointerEvent<HTMLInputElement>){
-    const brightness = event.target.value;
+    const brightness = (event.target as HTMLInputElement).value;
     const commands = {
       "brightness": brightness
     }
     sendRequest(commands);
   }
 
-  function brightnessHandler(event: React.ChangeEvent<HTMLInputElement>){{
+  function brightnessHandler(event: React.ChangeEvent<HTMLInputElement>){
     const brightness = event.target.value;
     setBrightnessLvl(parseInt(brightness));
-  }}
+  }
 
   function setStatus(isOn: number){
     const commands = {
